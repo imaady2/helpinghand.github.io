@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economics Flashcards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0d0a2e 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 2
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(135deg, #0f1e3d 0%, #1a2847 100%);
+            color: #00ff88;
+            padding: 25px;
+            overflow-y: auto;
+            border-right: 2px solid #00ff88
+        }
+        
+        .sidebar h1 {
+            font-size: 20px;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            letter-spacing: 2px
+        }
+        
+        .unit-folder {
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(255, 0, 136, 0.05));
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease
+        }
+        
+        .unit-header {
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            transition: all 0.3s;
+            user-select: none;
+            color: #00ff88;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6)
+        }
+        
+        .unit-header:hover {
+            background: rgba(0, 255, 136, 0.1)
+        }
+        
+        .unit-icon {
+            transition: transform 0.3s;
+            color: #ff0088;
+            font-size: 12px
+        }
+        
+        .unit-icon.open {
+            transform: rotate(90deg)
+        }
+        
+        .unit-cards {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease
+        }
+        
+        .unit-cards.open {
+            max-height: 800px
+        }
+        
+        .card-item {
+            padding: 8px 12px;
+            cursor: grab;
+            font-size: 12px;
+            transition: all 0.3s;
+            margin: 4px 6px;
+            border-radius: 4px;
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid transparent;
+            color: #00ff88
+        }
+        
+        .card-item:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-left-color: #ff0088;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.8)
+        }
+        
+        .card-item.dragging {
+            opacity: 0.5
+        }
+        
+        .card-item.drag-over-root {
+            background: rgba(0, 255, 136, 0.25);
+            border-left-color: #00ff88
+        }
+        
+        .root-drop-zone {
+            padding: 8px 12px;
+            margin: 4px 6px;
+            border-radius: 4px;
+            border: 2px dashed rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.02);
+            min-height: 20px;
+            transition: all 0.3s;
+            text-align: center;
+            font-size: 11px;
+            color: rgba(0, 255, 136, 0.5)
+        }
+        
+        .root-drop-zone.drag-over {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: #00ff88;
+            color: #00ff88
+        }
+        
+        .subfolder-container {
+            margin: 4px 6px;
+            background: rgba(255, 0, 136, 0.05);
+            border: 1px solid rgba(255, 0, 136, 0.2);
+            border-radius: 4px;
+            overflow: hidden
+        }
+        
+        .subfolder-container.drag-over {
+            background: rgba(255, 0, 136, 0.2);
+            border-color: #ff0088
+        }
+        
+        .subfolder-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #ff0088;
+            font-weight: 600;
+            font-size: 12px;
+            text-shadow: 0 0 5px rgba(255, 0, 136, 0.6);
+            background: rgba(255, 0, 136, 0.08);
+            user-select: none
+        }
+        
+        .subfolder-header:hover {
+            background: rgba(255, 0, 136, 0.15)
+        }
+        
+        .folder-toggle {
+            transition: transform 0.3s;
+            font-size: 10px;
+            color: #ff0088
+        }
+        
+        .folder-toggle.collapsed {
+            transform: rotate(-90deg)
+        }
+        
+        .folder-delete-btn {
+            background: none;
+            border: none;
+            color: #ff0088;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0 4px;
+            transition: all 0.2s
+        }
+        
+        .folder-delete-btn:hover {
+            color: #ff4477
+        }
+        
+        .subfolder-items {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(255, 0, 136, 0.02);
+            border-top: 1px solid rgba(255, 0, 136, 0.1);
+            min-height: 20px
+        }
+        
+        .subfolder-items.collapsed {
+            max-height: 0
+        }
+        
+        .subfolder-card {
+            padding: 6px 12px 6px 28px;
+            cursor: grab;
+            font-size: 11px;
+            transition: all 0.3s;
+            margin: 2px 4px;
+            border-radius: 3px;
+            background: rgba(0, 255, 136, 0.03);
+            border-left: 3px solid transparent;
+            color: #00ff88
+        }
+        
+        .subfolder-card:hover {
+            background: rgba(0, 255, 136, 0.1);
+            border-left-color: #ff0088
+        }
+        
+        .subfolder-card.dragging {
+            opacity: 0.5
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            padding: 8px;
+            background: rgba(0, 255, 136, 0.05);
+            border-top: 1px solid rgba(0, 255, 136, 0.2)
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 8px 10px;
+            font-size: 11px;
+            background: rgba(0, 255, 136, 0.12);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+            font-weight: 600
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.25);
+            border-color: rgba(0, 255, 136, 0.6)
+        }
+        
+        .folder-form-container {
+            display: none;
+            padding: 8px;
+            background: rgba(255, 0, 136, 0.1);
+            border-top: 1px solid rgba(255, 0, 136, 0.3);
+            border-bottom: 1px solid rgba(255, 0, 136, 0.3)
+        }
+        
+        .folder-form-container.show {
+            display: block
+        }
+        
+        .folder-form {
+            display: flex;
+            gap: 4px
+        }
+        
+        .folder-form input {
+            flex: 1;
+            padding: 6px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px
+        }
+        
+        .folder-form input:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.3)
+        }
+        
+        .folder-form button {
+            padding: 6px 10px;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s
+        }
+        
+        .folder-form button:hover {
+            background: rgba(0, 255, 136, 0.25);
+            border-color: rgba(0, 255, 136, 0.6)
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            background: radial-gradient(ellipse at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 70%)
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6)
+        }
+        
+        .empty-state h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 1px
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 20px
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: 2px solid #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s;
+            font-size: 13px;
+            border-radius: 4px;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px
+        }
+        
+        .btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+            transform: scale(1.05)
+        }
+        
+        .btn-delete {
+            background: rgba(255, 0, 136, 0.1);
+            border: 2px solid #ff0088;
+            color: #ff0088;
+            padding: 8px 12px;
+            font-size: 12px;
+            text-shadow: 0 0 5px rgba(255, 0, 136, 0.6);
+            box-shadow: 0 0 10px rgba(255, 0, 136, 0.2)
+        }
+        
+        .btn-delete:hover {
+            background: rgba(255, 0, 136, 0.2);
+            box-shadow: 0 0 20px rgba(255, 0, 136, 0.6)
+        }
+        
+        .flashcard-container {
+            perspective: 1200px;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            margin: 20px 0
+        }
+        
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-style: preserve-3d;
+            cursor: pointer
+        }
+        
+        .flashcard.flipped {
+            transform: rotateY(180deg)
+        }
+        
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(255, 0, 136, 0.05));
+            box-shadow: inset 0 0 20px rgba(0, 255, 136, 0.1), 0 0 30px rgba(0, 255, 136, 0.2)
+        }
+        
+        .flashcard-front {
+            border-color: #00ff88;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8)
+        }
+        
+        .flashcard-back {
+            border-color: #ff0088;
+            color: #ff0088;
+            text-shadow: 0 0 10px rgba(255, 0, 136, 0.8);
+            transform: rotateY(180deg)
+        }
+        
+        .flashcard-label {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 2px
+        }
+        
+        .flashcard-content {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-y: auto;
+            max-height: 250px
+        }
+        
+        .flashcard-hint {
+            font-size: 11px;
+            margin-top: 30px;
+            opacity: 0.6;
+            font-style: italic;
+            letter-spacing: 1px
+        }
+        
+        .card-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+        
+        .btn-nav {
+            padding: 10px 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6)
+        }
+        
+        .btn-nav:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5)
+        }
+        
+        .card-counter {
+            color: #00ff88;
+            font-weight: 700;
+            padding: 10px 15px;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+            background: rgba(0, 255, 136, 0.05)
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px)
+        }
+        
+        .modal.active {
+            display: flex
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #0f1e3d 0%, #1a2847 100%);
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4), inset 0 0 20px rgba(0, 255, 136, 0.1)
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+            font-size: 20px;
+            letter-spacing: 1px
+        }
+        
+        .form-group {
+            margin-bottom: 15px
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #00ff88;
+            font-size: 13px;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6);
+            letter-spacing: 1px
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            background: rgba(0, 255, 136, 0.05);
+            color: #00ff88;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: all 0.3s
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+            outline: none
+        }
+        
+        .form-group textarea {
+            min-height: 80px
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px
+        }
+        
+        .btn-save {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.6)
+        }
+        
+        .btn-save:hover {
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5)
+        }
+        
+        .btn-cancel {
+            background: rgba(255, 0, 136, 0.1);
+            border: 2px solid #ff0088;
+            color: #ff0088;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(255, 0, 136, 0.2);
+            box-shadow: 0 0 15px rgba(255, 0, 136, 0.5)
+        }
+        
+        @media(max-width:768px) {
+            .container {
+                flex-direction: column
+            }
+            .sidebar {
+                width: 100%;
+                max-height: 150px;
+                border-right: none;
+                border-bottom: 2px solid #00ff88
+            }
+            .main-content {
+                flex: 1;
+                padding: 20px
+            }
+            .flashcard-container {
+                height: 300px
+            }
+            .flashcard-face {
+                padding: 20px
+            }
+            .flashcard-content {
+                font-size: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h1>⚙️ UNITS</h1>
+            <div id="unitsList"></div>
+        </div>
+        <div class="main-content">
+            <div id="emptyState" class="empty-state">
+                <h2>🧠 ECONOMICS</h2>
+                <p>Select a unit or create your first flashcard</p><button class="btn" onclick="openCreateCardModal()">[ + CREATE CARD ]</button></div>
+            <div id="cardView" style="display:none;width:100%;max-width:700px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                    <h2 id="currentUnit" style="color:#00ff88;text-shadow:0 0 10px rgba(0,255,136,0.8)"></h2><button class="btn btn-delete" onclick="deleteCurrentCard()">[ 🗑️ DELETE ]</button></div>
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard" onclick="this.classList.toggle('flipped')">
+                        <div class="flashcard-face flashcard-front">
+                            <div class="flashcard-label">► QUESTION</div>
+                            <div class="flashcard-content" id="frontContent"></div>
+                            <div class="flashcard-hint">[ CLICK TO REVEAL ]</div>
+                        </div>
+                        <div class="flashcard-face flashcard-back">
+                            <div class="flashcard-label">► ANSWER</div>
+                            <div class="flashcard-content" id="backContent"></div>
+                            <div class="flashcard-hint">[ CLICK TO FLIP ]</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-controls"><button class="btn-nav" onclick="previousCard()">[ ← PREVIOUS ]</button><span class="card-counter" id="cardCounter"></span><button class="btn-nav" onclick="nextCard()">[ NEXT → ]</button><button class="btn" onclick="openCreateCardModal()">[ + NEW ]</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <h2>[ NEW FLASHCARD ]</h2>
+            <form onsubmit="saveCard(event)">
+                <div class="form-group"><label>SELECT UNIT:</label><select id="unitSelect" required><option value="">-- CHOOSE UNIT --</option></select></div>
+                <div class="form-group"><label>QUESTION:</label><textarea id="questionInput" placeholder="Enter question..." required></textarea></div>
+                <div class="form-group"><label>ANSWER:</label><textarea id="answerInput" placeholder="Enter answer..." required></textarea></div>
+                <div class="modal-buttons"><button type="button" class="btn-cancel" onclick="closeCreateCardModal()">[ CANCEL ]</button><button type="submit" class="btn-save">[ SAVE ]</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const UNITS = [{
+            id: 1,
+            name: 'UNIT-I: Nature & Scope'
+        }, {
+            id: 2,
+            name: 'UNIT-II: Elasticity & Market'
+        }, {
+            id: 3,
+            name: 'UNIT-III: Production & Cost'
+        }, {
+            id: 4,
+            name: 'UNIT-IV: Pricing & Profit'
+        }];
+        let allCards = JSON.parse(localStorage.getItem('flashcards')) || [];
+        let allFolders = JSON.parse(localStorage.getItem('folders')) || [];
+        let folderStates = JSON.parse(localStorage.getItem('folderStates')) || {};
+        let currentUnitId = null;
+        let currentCardIndex = 0;
+
+        function initializeSidebar() {
+            const unitsList = document.getElementById('unitsList');
+            unitsList.innerHTML = '';
+            UNITS.forEach(unit => {
+                const unitContainer = document.createElement('div');
+                unitContainer.className = 'unit-folder';
+                const header = document.createElement('div');
+                header.className = 'unit-header';
+                header.innerHTML = `<span>${unit.name}</span><span class="unit-icon">▶</span>`;
+                header.onclick = () => toggleUnitFolder(header, unit.id);
+                const cardsList = document.createElement('div');
+                cardsList.className = 'unit-cards';
+                cardsList.id = `unit-${unit.id}`;
+                renderUnitContents(unit.id, cardsList);
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+                const folderBtn = document.createElement('button');
+                folderBtn.className = 'action-btn';
+                folderBtn.textContent = '📁 Folder';
+                folderBtn.type = 'button';
+                folderBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const formContainer = document.getElementById(`form-${unit.id}`);
+                    formContainer.classList.toggle('show');
+                    const input = formContainer.querySelector('input');
+                    if (input) input.focus()
+                };
+                const cardBtn = document.createElement('button');
+                cardBtn.className = 'action-btn';
+                cardBtn.textContent = '📝 Card';
+                cardBtn.type = 'button';
+                cardBtn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openCreateCardModal(unit.id)
+                };
+                actionButtons.appendChild(folderBtn);
+                actionButtons.appendChild(cardBtn);
+                unitContainer.appendChild(header);
+                unitContainer.appendChild(cardsList);
+                const folderForm = document.createElement('div');
+                folderForm.id = `form-${unit.id}`;
+                folderForm.className = 'folder-form-container';
+                folderForm.innerHTML = `<div class="folder-form"><input type="text" placeholder="Folder name..." id="input-${unit.id}"><button type="button" onclick="saveFolderName(${unit.id})">Save</button><button type="button" onclick="closeFolderForm(${unit.id})" style="background:rgba(255,0,136,0.15);border-color:rgba(255,0,136,0.3);color:#ff0088">Cancel</button></div>`;
+                unitContainer.appendChild(folderForm);
+                unitContainer.appendChild(actionButtons);
+                unitsList.appendChild(unitContainer)
+            });
+            updateUnitSelect()
+        }
+
+        function saveFolderName(unitId) {
+            const input = document.getElementById(`input-${unitId}`);
+            const folderName = input.value.trim();
+            if (!folderName) {
+                alert('Please enter a folder name');
+                return
+            }
+            allFolders.push({
+                id: Date.now(),
+                unitId: unitId,
+                name: folderName
+            });
+            localStorage.setItem('folders', JSON.stringify(allFolders));
+            closeFolderForm(unitId);
+            initializeSidebar()
+        }
+
+        function closeFolderForm(unitId) {
+            const formContainer = document.getElementById(`form-${unitId}`);
+            formContainer.classList.remove('show');
+            const input = document.getElementById(`input-${unitId}`);
+            if (input) input.value = ''
+        }
+
+        function renderUnitContents(unitId, container) {
+            const unitFolders = allFolders.filter(f => f.unitId === unitId);
+            unitFolders.forEach(folder => {
+                const folderDiv = document.createElement('div');
+                folderDiv.className = 'subfolder-container';
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'subfolder-header';
+                const toggleSpan = document.createElement('span');
+                toggleSpan.className = 'folder-toggle';
+                toggleSpan.textContent = '▶';
+                const isClosed = folderStates[folder.id];
+                if (isClosed) {
+                    toggleSpan.classList.add('collapsed')
+                }
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = '📂 ' + folder.name;
+                nameSpan.style.flex = '1';
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'folder-delete-btn';
+                deleteBtn.textContent = '✕';
+                deleteBtn.type = 'button';
+                deleteBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    if (confirm('Delete folder "' + folder.name + '"?')) {
+                        allFolders = allFolders.filter(f => f.id !== folder.id);
+                        delete folderStates[folder.id];
+                        localStorage.setItem('folders', JSON.stringify(allFolders));
+                        localStorage.setItem('folderStates', JSON.stringify(folderStates));
+                        initializeSidebar()
+                    }
+                };
+                headerDiv.appendChild(toggleSpan);
+                headerDiv.appendChild(nameSpan);
+                headerDiv.appendChild(deleteBtn);
+                const itemsDiv = document.createElement('div');
+                itemsDiv.className = 'subfolder-items';
+                if (isClosed) {
+                    itemsDiv.classList.add('collapsed')
+                }
+                const folderCards = allCards.filter(c => c.unitId === unitId && c.folderId === folder.id);
+                folderCards.forEach((card, idx) => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'subfolder-card';
+                    cardDiv.draggable = true;
+                    cardDiv.textContent = `Q${idx+1}: ${card.question.substring(0,15)}...`;
+                    cardDiv.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', card.id);
+                        cardDiv.classList.add('dragging')
+                    });
+                    cardDiv.addEventListener('dragend', () => {
+                        cardDiv.classList.remove('dragging')
+                    });
+                    cardDiv.onclick = function() {
+                        selectCard(unitId, allCards.indexOf(card))
+                    };
+                    itemsDiv.appendChild(cardDiv)
+                });
+                headerDiv.onclick = function() {
+                    toggleSpan.classList.toggle('collapsed');
+                    itemsDiv.classList.toggle('collapsed');
+                    folderStates[folder.id] = itemsDiv.classList.contains('collapsed');
+                    localStorage.setItem('folderStates', JSON.stringify(folderStates))
+                };
+                folderDiv.appendChild(headerDiv);
+                folderDiv.appendChild(itemsDiv);
+                folderDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    folderDiv.classList.add('drag-over')
+                });
+                folderDiv.addEventListener('dragleave', () => {
+                    folderDiv.classList.remove('drag-over')
+                });
+                folderDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    folderDiv.classList.remove('drag-over');
+                    const cardId = parseInt(e.dataTransfer.getData('text/plain'));
+                    const card = allCards.find(c => c.id === cardId);
+                    if (card) {
+                        card.folderId = folder.id;
+                        localStorage.setItem('flashcards', JSON.stringify(allCards));
+                        initializeSidebar()
+                    }
+                });
+                container.appendChild(folderDiv)
+            });
+            const rootDropZone = document.createElement('div');
+            rootDropZone.className = 'root-drop-zone';
+            rootDropZone.textContent = '⬇️ DROP HERE TO MOVE OUT OF FOLDER';
+            rootDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                rootDropZone.classList.add('drag-over')
+            });
+            rootDropZone.addEventListener('dragleave', () => {
+                rootDropZone.classList.remove('drag-over')
+            });
+            rootDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                rootDropZone.classList.remove('drag-over');
+                const cardId = parseInt(e.dataTransfer.getData('text/plain'));
+                const card = allCards.find(c => c.id === cardId);
+                if (card) {
+                    card.folderId = null;
+                    localStorage.setItem('flashcards', JSON.stringify(allCards));
+                    initializeSidebar()
+                }
+            });
+            container.appendChild(rootDropZone);
+            const rootCards = allCards.filter(c => c.unitId === unitId && !c.folderId);
+            rootCards.forEach((card, idx) => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-item';
+                cardDiv.draggable = true;
+                cardDiv.textContent = `Q${idx+1}: ${card.question.substring(0,20)}...`;
+                cardDiv.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', card.id);
+                    cardDiv.classList.add('dragging')
+                });
+                cardDiv.addEventListener('dragend', () => {
+                    cardDiv.classList.remove('dragging')
+                });
+                cardDiv.onclick = function() {
+                    selectCard(unitId, allCards.indexOf(card))
+                };
+                container.appendChild(cardDiv)
+            })
+        }
+
+        function toggleUnitFolder(header, unitId) {
+            header.classList.toggle('active');
+            header.querySelector('.unit-icon').classList.toggle('open');
+            document.getElementById(`unit-${unitId}`).classList.toggle('open')
+        }
+
+        function selectCard(unitId, cardIndex) {
+            currentUnitId = unitId;
+            currentCardIndex = cardIndex;
+            displayCard(allCards[cardIndex]);
+            updateUI()
+        }
+
+        function displayCard(card) {
+            document.getElementById('frontContent').textContent = card.question;
+            document.getElementById('backContent').textContent = card.answer;
+            document.getElementById('currentUnit').textContent = UNITS.find(u => u.id === currentUnitId).name;
+            document.getElementById('flashcard').classList.remove('flipped');
+            const unitCards = allCards.filter(c => c.unitId === currentUnitId);
+            const idx = unitCards.indexOf(card);
+            document.getElementById('cardCounter').textContent = `${idx+1} / ${unitCards.length}`
+        }
+
+        function nextCard() {
+            const unitCards = allCards.filter(c => c.unitId === currentUnitId);
+            const current = unitCards.indexOf(allCards[currentCardIndex]);
+            currentCardIndex = allCards.indexOf(unitCards[(current + 1) % unitCards.length]);
+            displayCard(allCards[currentCardIndex])
+        }
+
+        function previousCard() {
+            const unitCards = allCards.filter(c => c.unitId === currentUnitId);
+            const current = unitCards.indexOf(allCards[currentCardIndex]);
+            currentCardIndex = allCards.indexOf(unitCards[(current - 1 + unitCards.length) % unitCards.length]);
+            displayCard(allCards[currentCardIndex])
+        }
+
+        function openCreateCardModal(preSelectedUnitId = null) {
+            document.getElementById('createModal').classList.add('active');
+            if (preSelectedUnitId) {
+                document.getElementById('unitSelect').value = preSelectedUnitId
+            }
+        }
+
+        function closeCreateCardModal() {
+            document.getElementById('createModal').classList.remove('active');
+            document.getElementById('questionInput').value = '';
+            document.getElementById('answerInput').value = ''
+        }
+
+        function saveCard(event) {
+            event.preventDefault();
+            const unitId = parseInt(document.getElementById('unitSelect').value);
+            const question = document.getElementById('questionInput').value;
+            const answer = document.getElementById('answerInput').value;
+            if (!unitId || !question || !answer) {
+                alert('Please fill all fields');
+                return
+            }
+            const newCard = {
+                id: Date.now(),
+                unitId,
+                folderId: null,
+                question,
+                answer
+            };
+            allCards.push(newCard);
+            localStorage.setItem('flashcards', JSON.stringify(allCards));
+            closeCreateCardModal();
+            initializeSidebar();
+            selectCard(unitId, allCards.length - 1);
+            updateUI()
+        }
+
+        function deleteCurrentCard() {
+            if (!currentCardIndex) {
+                alert('No card selected');
+                return
+            }
+            if (confirm('Delete this card?')) {
+                allCards.splice(currentCardIndex, 1);
+                localStorage.setItem('flashcards', JSON.stringify(allCards));
+                initializeSidebar();
+                const unitCards = allCards.filter(c => c.unitId === currentUnitId);
+                if (unitCards.length === 0) {
+                    currentUnitId = null;
+                    currentCardIndex = 0;
+                    updateUI()
+                } else {
+                    currentCardIndex = allCards.indexOf(unitCards[0]);
+                    displayCard(allCards[currentCardIndex])
+                }
+            }
+        }
+
+        function updateUI() {
+            if (!currentUnitId) {
+                document.getElementById('cardView').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return
+            }
+            const unitCards = allCards.filter(c => c.unitId === currentUnitId);
+            if (unitCards.length > 0) {
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('cardView').style.display = 'block'
+            } else {
+                document.getElementById('cardView').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block'
+            }
+        }
+
+        function updateUnitSelect() {
+            const select = document.getElementById('unitSelect');
+            select.innerHTML = '<option value="">-- CHOOSE UNIT --</option>';
+            UNITS.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.id;
+                option.textContent = unit.name;
+                select.appendChild(option)
+            })
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSidebar();
+            if (allCards.length > 0) {
+                selectCard(allCards[0].unitId, 0)
+            }
+        });
+    </script>
+</body>
+
+</html>
